@@ -1,0 +1,29 @@
+# 依赖
+node_modules/
+
+# Android 编译产物
+android/.gradle/
+android/app/build/
+android/build/
+.gradle/
+
+# APK 安装包
+*.apk
+*.aab
+
+# 本地配置文件
+android/local.properties
+
+# Git 本身
+.git/
+
+# IDE
+.idea/
+*.iml
+
+# 日志
+*.log
+
+# 系统文件
+.DS_Store
+Thumbs.db
