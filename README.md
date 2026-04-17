@@ -1,6 +1,6 @@
-# 校园美食指南 - 校园菜单汇总应用
+# 鸟中学校用的
 
-一个使用 Material Design 3 设计风格的校园餐饮菜单汇总应用，已使用 Capacitor 配置为 Android 原生应用。
+一个使用 Material Design 3 设计风格的校园餐饮菜单汇总应用，已使用 Capacitor 配置为 Android 原生应用。使用了AI进行辅助
 
 ## 功能特性
 
@@ -43,8 +43,8 @@ school_today_eat/
    
 2. **在 Android Studio 中**
    - 等待 Gradle 同步完成
-   - 点击菜单: `Build` → `Build Bundle(s) / APK(s)` → `Build APK(s)`
-   - 构建完成后，点击通知中的 `locate` 查看 APK 文件
+   - 点击菜单: `Build` → `Compile All Sources` → `Run'app'`
+   - 构建完成后，在手机内查看文件
 
 3. **APK 文件位置**
    ```
