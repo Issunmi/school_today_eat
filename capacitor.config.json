@@ -1,0 +1,6 @@
+{
+  "appId": "com.school.food",
+  "appName": "肠衣今日吃什么",
+  "webDir": "www",
+  "bundledWebRuntime": false
+}
