@@ -614,21 +614,35 @@ const App = (() => {
     const tabs = dom.modalContent.querySelectorAll('.restaurant-detail__tab');
     const menuContent = dom.modalContent.querySelector('.restaurant-detail__content--menu');
     const commentsContent = dom.modalContent.querySelector('.restaurant-detail__content--comments');
-    
+
     tabs.forEach(tab => {
       tab.addEventListener('click', () => {
+        if (tab.classList.contains('restaurant-detail__tab--active')) return;
+
         tabs.forEach(t => t.classList.remove('restaurant-detail__tab--active'));
         tab.classList.add('restaurant-detail__tab--active');
-        
+
         const tabType = tab.dataset.tab;
-        if (tabType === 'menu') {
-          menuContent.style.display = 'block';
-          commentsContent.style.display = 'none';
-        } else if (tabType === 'comments') {
-          menuContent.style.display = 'none';
-          commentsContent.style.display = 'block';
-          initWaline(restaurant.id, restaurant.name);
-        }
+        const currentActive = menuContent.style.display !== 'none' ? menuContent : commentsContent;
+        const nextContent = tabType === 'menu' ? menuContent : commentsContent;
+
+        currentActive.classList.add('content-fade-out');
+        setTimeout(() => {
+          if (tabType === 'menu') {
+            menuContent.style.display = 'block';
+            commentsContent.style.display = 'none';
+          } else if (tabType === 'comments') {
+            menuContent.style.display = 'none';
+            commentsContent.style.display = 'block';
+            initWaline(restaurant.id, restaurant.name);
+          }
+
+          nextContent.classList.remove('content-fade-out');
+          nextContent.classList.add('content-fade-in');
+          setTimeout(() => {
+            nextContent.classList.remove('content-fade-in');
+          }, 300);
+        }, 150);
       });
     });
   }
@@ -654,7 +668,7 @@ const App = (() => {
         dark: 'auto',
         copyright: false,
         requiredMeta: ['nick'],
-        placeholder: `对「${restaurantName}」有什么想说的？`,
+        placeholder: `对「${restaurantName}」有什么想说的？\n\n📌 温馨提示：\n• 图片只能上传128kb\n• 登录功能暂未完善，无需登录，填写昵称即可评论~`,
         rss: false,
       });
       
@@ -662,6 +676,7 @@ const App = (() => {
         setupEditorLabel();
         setupInputOccupied();
         ratingManager.init();
+        setupCommentRefresh(restaurantId, restaurantName);
       }, 100);
     } catch (err) {
       container.innerHTML = '<div class="waline-error"><span class="material-icons-round">error_outline</span><span>评论加载失败</span></div>';
@@ -707,6 +722,93 @@ const App = (() => {
           }
         });
       }
+    });
+  }
+
+  function setupCommentRefresh(restaurantId, restaurantName) {
+    const container = document.getElementById('waline-container');
+    if (!container || !walineInstance) return;
+
+    let isSubmitting = false;
+
+    const observer = new MutationObserver(() => {
+      const submitBtn = container.querySelector('.wl-btn-primary');
+      if (submitBtn && !submitBtn.dataset.refreshHooked) {
+        submitBtn.dataset.refreshHooked = 'true';
+        submitBtn.addEventListener('click', () => {
+          if (isSubmitting) return;
+          isSubmitting = true;
+
+          setTimeout(async () => {
+            try {
+              showRefreshingAnimation(container);
+              await refreshComments(restaurantId, restaurantName);
+              ratingManager.init();
+            } catch (err) {
+              console.log('[App] 刷新评论失败:', err);
+            } finally {
+              isSubmitting = false;
+            }
+          }, 800);
+        });
+      }
+    });
+
+    observer.observe(container, {
+      childList: true,
+      subtree: true
+    });
+
+    if (walineInstance.on) {
+      walineInstance.on('comment', async () => {
+        try {
+          showRefreshingAnimation(container);
+          await refreshComments(restaurantId, restaurantName);
+          ratingManager.init();
+        } catch (err) {
+          console.log('[App] 评论提交后刷新失败:', err);
+        }
+      });
+    }
+  }
+
+  function showRefreshingAnimation(container) {
+    const cards = container.querySelector('.wl-cards');
+    if (cards) {
+      cards.style.opacity = '0.5';
+      cards.style.pointerEvents = 'none';
+      cards.style.transition = 'opacity 0.3s ease';
+    }
+
+    let refreshIndicator = container.querySelector('.refresh-indicator');
+    if (!refreshIndicator) {
+      refreshIndicator = document.createElement('div');
+      refreshIndicator.className = 'refresh-indicator';
+      refreshIndicator.innerHTML = `
+        <span class="material-icons-round" style="animation: spin 1s linear infinite;">sync</span>
+        <span>正在刷新评论...</span>
+      `;
+      container.insertBefore(refreshIndicator, cards);
+
+      setTimeout(() => {
+        if (refreshIndicator.parentNode) {
+          refreshIndicator.remove();
+        }
+      }, 2000);
+    }
+  }
+
+  async function refreshComments(restaurantId, restaurantName) {
+    return new Promise((resolve) => {
+      setTimeout(async () => {
+        if (walineInstance) {
+          walineInstance.destroy();
+          walineInstance = null;
+        }
+
+        await initWaline(restaurantId, restaurantName);
+        resolve();
+      }, 500);
     });
   }
 

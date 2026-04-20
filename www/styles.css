@@ -1179,6 +1179,30 @@ body {
   to { transform: rotate(360deg); }
 }
 
+/* ===== Refresh Indicator ===== */
+.refresh-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  margin: 16px 0;
+  color: var(--md-sys-color-primary);
+  font-size: var(--md-sys-typescale-body-medium);
+  animation: fade-in-out 2s ease forwards;
+}
+
+.refresh-indicator .material-icons-round {
+  font-size: 20px;
+}
+
+@keyframes fade-in-out {
+  0% { opacity: 0; transform: translateY(-10px); }
+  15% { opacity: 1; transform: translateY(0); }
+  75% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
 /* ===== Waline Comment System - Material Design 3 ===== */
 #waline-container {
   --waline-theme-color: var(--md-sys-color-primary);
